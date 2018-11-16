@@ -1,4 +1,4 @@
-package com.feng.layoututil;
+package com.feng.layoututil.util;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.feng.layoututil.R;
+
 import java.util.Objects;
 
 /**
@@ -21,8 +23,12 @@ public class TabLayoutManager {
 
     @SuppressLint("StaticFieldLeak")
     private static TabLayoutManager mTabLayoutManager;
+
     private TabLayout mTabLayout;
     private AppCompatActivity mAppCompatActivity;
+
+    private FragmentTransaction mFragmentTransaction;
+    private OnTabSelectedListener mOnTabSelectedListener;
 
     private int mTabNum = 0;            //标签数
     private int[] mBeforePressedIcons;  //未点击时的图标
@@ -30,14 +36,11 @@ public class TabLayoutManager {
     private String[] mTabContents;      //标签文字
     private int mColorBeforePressed;    //未点击时的文字颜色
     private int mColorPressed;          //点击后的文字颜色
+    private int mContainer;             //Fragment的容器
+    private Fragment[] mFragments;      //Fragment集合
 
     private static int FLAG_FIRST_CLICK = 1;    //1表示第一次点击，0表示不是第一次点击
 
-    private static final String TAG = "fzh";
-
-    private FragmentTransaction mFragmentTransaction;
-
-    private OnTabSelectedListener mOnTabSelectedListener;
     //该接口用于点击tab后回调
     public interface OnTabSelectedListener{
         void tabSelected(int position);
@@ -46,50 +49,30 @@ public class TabLayoutManager {
         mOnTabSelectedListener = onTabSelectedListener;
     }
 
-    public static TabLayoutManager newInstance(TabLayout mTabLayout, AppCompatActivity mAppCompatActivity) {
-        mTabLayoutManager = new TabLayoutManager(mTabLayout, mAppCompatActivity);
+    public static TabLayoutManager getInstance(TabLayout mTabLayout, AppCompatActivity mAppCompatActivity) {
+        if (mTabLayoutManager == null) {
+            mTabLayoutManager = new TabLayoutManager(mTabLayout, mAppCompatActivity);
+        }
         return mTabLayoutManager;
     }
 
-    TabLayoutManager(TabLayout mTabLayout, AppCompatActivity mAppCompatActivity) {
+    private TabLayoutManager(TabLayout mTabLayout, AppCompatActivity mAppCompatActivity) {
         this.mTabLayout = mTabLayout;
         this.mAppCompatActivity = mAppCompatActivity;
     }
 
-    public TabLayoutManager setTabNum(int num) {
-        mTabNum = num;
-        return mTabLayoutManager;
-    }
 
-    public TabLayoutManager setIcons(int [] beforePressedIcons, int [] pressedIcons) {
-        if (beforePressedIcons.length != mTabNum ||
-                pressedIcons.length != mTabNum) {
-            return mTabLayoutManager;
-        }
-        mBeforePressedIcons = beforePressedIcons;
-        mPressedIcons = pressedIcons;
+    public void init(TabLayoutConfig config) {
+        mTabNum = config.getTabNum();
+        mBeforePressedIcons = config.getBeforePressedIcons();
+        mPressedIcons = config.getPressedIcons();
+        mTabContents = config.getTabContents();
+        mColorBeforePressed = config.getColorBeforePressed();
+        mColorPressed = config.getColorPressed();
+        mContainer = config.getContainer();
+        mFragments = config.getFragments();
 
-        return mTabLayoutManager;
-    }
-
-    public TabLayoutManager setTabContents(String[] tabContents) {
-        if (tabContents.length != mTabNum) {
-            return mTabLayoutManager;
-        }
-        mTabContents = tabContents;
-
-        return mTabLayoutManager;
-    }
-
-    public TabLayoutManager setTextColor(int colorBeforePressed, int colorPressed) {
-        mColorBeforePressed = colorBeforePressed;
-        mColorPressed = colorPressed;
-
-        return mTabLayoutManager;
-    }
-
-    public void build(int container, Fragment[] fragments) {
-        addTabLayoutListener(container, fragments);
+        addTabLayoutListener(mContainer, mFragments);
         addTabLayout();
     }
 
@@ -227,4 +210,6 @@ public class TabLayoutManager {
         tabTitleTextView.setText(mTabContents[position]);
         return view;
     }
+
+
 }
